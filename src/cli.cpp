@@ -3,7 +3,7 @@
 #include <string>
 #include <stdlib.h>
 #include <unistd.h>
-#include <ncurses.h>
+
 #include <variable.hpp>
 #include <sstream>
 #include <vector>
@@ -16,24 +16,15 @@
 std::string F(std::string cmd, CLI &cli, Output &out, cliba& clis)
 {
     std::string cmds;
-    if (cmd != "" || cmd != " " || cmd.empty())
-    {
-        std::vector<std::string> args;
-        std::istringstream iss(cmd);
-        std::string word;
-        while (iss >> word)
-        {
-            args.push_back(word);
-        }
-        cmds = args.front();
-    }
+
+    
     try
     {
-        if (cmds == "" || cmds.empty())
+        if (cmd == "" || cmd.empty())
         {
             return "";
         }
-        else if (cmds == "exit")
+        else if (cmd == "exit")
         {
             cli.Exit();
             return "Exited";

@@ -4,6 +4,9 @@
 #include <string>
 #include <variable.hpp>
 #include <cliba.hpp>
+#ifndef HOSTS
+#define HOSTS "NULL"
+#endif
 class CLI
 {
     //path
@@ -26,7 +29,7 @@ class CLI
     cliba clib;
     void Set(std::string name, int id, Host &hosts)
     {
-        host.hostname = hosts.hostname;
+        host.hostname = HOSTS;
         user.id = id;
         user.name = name;
         isSet = true;
@@ -37,6 +40,6 @@ class CLI
         d = 1;
     }
     void Clear();
-    
+
 };
 #endif
