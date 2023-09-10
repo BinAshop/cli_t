@@ -20,7 +20,5 @@ add_executable(cli ${SRCS})
 
 find_package(Curses REQUIRED)
 target_link_libraries(cli ${CURSES_LIBRARIES})
-
 find_package(Boost REQUIRED)
-
 target_link_libraries(cli ${Boost_LIBRARIES})
