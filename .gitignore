@@ -1,4 +1,5 @@
 # Prerequisites
+cli_t.zip
 *.d
 
 # Compiled Object files
@@ -30,3 +31,8 @@
 *.exe
 *.out
 *.app
+CMakeFiles
+build
+Makefile
+CMakeCache.txt
+cmake_install.cmake
