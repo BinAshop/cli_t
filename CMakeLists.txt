@@ -17,8 +17,7 @@ file(GLOB SRCS
     "${PROJECT_SOURCE_DIR}/cliba/src/*"
 )
 add_executable(cli ${SRCS})
-find_package(CURL REQUIRED)
-target_link_libraries(cli ${CURL_LIBRARIES})
+
 find_package(Curses REQUIRED)
 target_link_libraries(cli ${CURSES_LIBRARIES})
 
