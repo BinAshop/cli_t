@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
+#include <fstream>
 #include <map>
 #include <stdlib.h>
 #include <cliba.hpp>
@@ -195,6 +196,43 @@ int cliba::printp(string str)
 
     return 0;
 }
+int cliba::import(string path){
+    
+    if (path == "" || path.empty()){
+        return perr(1, "IMPORT: Invalid usage.");
+    }
+    if (!ends_with(path, ".clb")){
+        path.append(".clb");
+    }
+    std::string pimport_default = getstrv("LIB") + "/" + path;
+    std::string pimport = path;
+    if (access(pimport_default.c_str(), F_OK) != 0){
+        if (access(pimport.c_str(), F_OK) != 0){
+            return perr(1, "IMPORT: Module '" + path + "' not found.");
+        }else{
+            pimport = path;
+        }
+    }else{
+        pimport = pimport_default;
+    }
+    //pimport.append(".clb");
+    std::string line;
+    // reading files
+    std::ifstream file(pimport);
+    if (!file){
+        return perr(1, "IMPORT: Module '" + path + "' error.");
+    }
+    std::string sources;
+    while (std::getline(file, line)){
+        sources.append(line + "\n");
+    }
+    int result = CompileCliba(sources);
+    if (result != 0)
+    {
+        return perr(1, "IMPORT: Module '" + path + "' error.");
+    }
+    return 0;
+}
 int cliba::CompileCliba(string sources)
 {
     // Membuat streambuf dan stream dari string input
@@ -266,6 +304,13 @@ int cliba::CompileCliba(string sources)
 				cout << it->first << ": " << it->second << endl;
 			}
         }
+        else if (starts_with(line, "@import"))
+        {
+            replace_first(line, "@import", "");
+            replace_first(line, ">", "");
+            replace_all(line, " ", "");
+            c_result = import(line);
+        }
         else
         {
             if (getstrv("PATH") == "null")
@@ -308,7 +353,8 @@ int cliba::CompileCliba(string sources)
         case 0:
             break;
         case 1:
-            return 1;
+            
+            return perr(1, "Error on line " + std::to_string(line_n) + ".");
         default:
             return 1;
         }

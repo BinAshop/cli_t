@@ -20,6 +20,7 @@ class cliba{
      int varstr(string key, string value);
      int printp(string str);
      int printpf(string str);
+     int import(string path);
      //int s_import(c_cliba& __class);
      //int func(void (*args), ...);
 
