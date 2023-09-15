@@ -1,1 +1,9 @@
-@printp|hello, world|end
+out: "Hello World"
+var: Test: 1
+out: @Test
+Func Compiler(var: Str) {
+    out: "Work!"
+}
+@Compiler()
+@_END_SCRIPT_
+out: "After"
