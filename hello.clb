@@ -1,6 +1,9 @@
 out: "Hello World"
 var: Test: 1
 out: @Test
+Func Print(var: str){
+    
+}
 Func Compiler(var: Str) {
     out: "Work!"
 }

@@ -9,7 +9,6 @@ enum TokenType
 {
 
     identifier,
-    keyword,
     op,
     vs,
     vi,
@@ -32,7 +31,9 @@ enum TokenType
     divide,
     percent,
     TypeError,
-    
+    space,
+    tab,
+    nextl,
     error,
     open_round_brackets,
     close_round_brackets,
@@ -48,7 +49,6 @@ std::map<TokenType, std::string> TOKEN_TYPE_MAP = {
     {coma, ","},
     {ob, "{"},
     {cb, "}"},
-    {pp, "()"},
     {open_round_brackets, "("},
     {close_round_brackets, ")"},
     {add, "+"},
@@ -58,11 +58,9 @@ std::map<TokenType, std::string> TOKEN_TYPE_MAP = {
 
     {comment, "#"},
     {end, "\n"},
-    
-    
-    
     {ticks, "\""}};
-enum Expression {
+enum Expression
+{
 
 };
 /*enum StringInterpolation{
@@ -82,7 +80,7 @@ enum KeywordType
     kw_Int,
     kw_Bool,
     kw_TypeError,
-   
+
     error_func_not_implemented,
     error_invalid_operator,
     error_expected_identifier,
@@ -101,8 +99,7 @@ std::map<KeywordType, std::string> KEYWORD = {
     {var, "var"},
     {null, "Null"},
     {False, "false"},
-    {True, "true"}
-};
+    {True, "true"}};
 struct Token
 {
     TokenType type;
@@ -124,10 +121,18 @@ public:
         }
         // Handle identifiers and keywords.
         char currentChar = input_[position_];
-        if (currentChar == ' ' || currentChar == '\t' || currentChar == '\n')
+        if (currentChar == ' ')
         {
             ++position_;
-            getNextToken();
+            return {space, space, null, " "};
+        }
+        else if (currentChar == '\t'){
+            ++position_;
+            return {tab, tab, null, " "};
+        }
+        else if (currentChar == '\n'){
+            ++position_;
+            return {nextl, nextl, null, " "};   
         }
         else if (currentChar == TOKEN_TYPE_MAP[at][0])
         {
@@ -144,56 +149,9 @@ public:
             }
             // check if identifier is a keyword
             Token token;
+            // 0 = not found, 1 = found
             // token = {kw_error_func_not_implemented, " Func: " + identifier + " not implemented"};
             token = {TokenType::identifier, TokenType::identifier, null, identifier};
-            for (auto &i : KEYWORD)
-            {
-                if (identifier == i.second)
-                {
-                    token = {keyword, keyword, i.first, i.second};
-                    break;
-                }
-            }
-            for (auto &i : TOKEN_TYPE_MAP)
-            {
-                if (identifier == i.second)
-                {
-                    token = {op, i.first, null ,i.second};
-                    break;
-                }
-            }
-            for (auto &i : VAR_STR)
-            {
-                if (identifier == i.first)
-                {
-                    token = {keyword, vs, KeywordType::kw_String, i.second};
-                    break;
-                }
-            }
-            for (auto &i : VAR_INT)
-            {
-                if (identifier == i.first)
-                {
-                    token = {keyword, vi, KeywordType::kw_Int, std::to_string(i.second)};
-                    break;
-                }
-            }
-            for (auto &i : VAR_BOOL)
-            {
-                if (identifier == i.first)
-                {
-                    if (i.second == true)
-                    {
-                        token = {keyword, vb, KeywordType::kw_Bool, KEYWORD[True]};
-                        break;
-                    }
-                    else if (i.second == false)
-                    {
-                        token = {keyword, vb, KeywordType::kw_Bool, KEYWORD[False]};
-                        break;
-                    }
-                }
-            }
             return token;
             /*if (identifier == KEYWORD[out]){
                 return {keyword, KEYWORD[out]};
@@ -222,12 +180,35 @@ public:
             }
             return {literal, TokenType::Int, KeywordType::kw_Int, std::to_string(num)};
         }
+        /*
+         *  Parse string literals and if not valid like "string" return error
+         */
+        else if (currentChar == '\"')
+        {
+            std::string str;
+            ++position_;
+            while (position_ < input_.size() && input_[position_] != '\"')
+            {
+                str += input_[position_];
+                ++position_;
+            }
+            // Check if string is valid
+            if (position_ >= input_.size() || input_[position_] != '\"')
+            {
+                return {error, TokenType::TypeError, error_expected_end_of_string, " Expected end of string"};
+            }
+            if (position_ < input_.size() && input_[position_] == '\"')
+            {
+                ++position_; // Advance past the closing quote.
+            }
+            return {literal, TokenType::String, KeywordType::kw_String, str};
+        }
         else
         {
             // Handle other characters as needed.
             // For simplicity, we'll just skip unknown characters.
             Token token;
-            token = {error, TokenType::TypeError, error_invalid_operator,  " Invalid operator: " + std::string(1, currentChar)};
+            token = {error, TokenType::TypeError, error_invalid_operator, " Invalid operator: " + std::string(1, currentChar)};
             for (auto &i : TOKEN_TYPE_MAP)
             {
                 if (currentChar == i.second[0])
@@ -237,28 +218,10 @@ public:
                     break;
                 }
             }
-            if (token.type == ticks)
-            {
-                std::string str;
-                ++position_;
-                while (position_ < input_.size() && input_[position_] != '\"')
-                {
-                    str += input_[position_];
-                    ++position_;
-                }
-                if (position_ < input_.size() && input_[position_] == '\"')
-                {
-                    ++position_; // Advance past the closing quote.
-                }
-                else
-                {
-                    return {error, TokenType::TypeError, error_expected_end_of_string, "Expected end of string"};
-                }
-                return {literal, TokenType::String, KeywordType::kw_String, str};
-            }
+
             return token;
         }
-    }
+    };
 
 private:
     std::string input_;
@@ -278,6 +241,7 @@ public:
             token = lexer_.getNextToken();
             if (token.type == end)
             {
+                std::cout << "End of input, exit loop.\n";
                 break; // End of input, exit loop.
             }
             else if (token.type == at)
@@ -299,7 +263,17 @@ public:
                 // Handle colon.
                 std::cout << "Colon " << token.lexeme << "\n";
             }
-            else if (token.type == literal)
+            else if (token.type == literal && token.type2 == String)
+            {
+                // Handle string.
+                std::cout << "L: " << token.lexeme << " \n";
+            }
+            else if (token.type == literal && token.type2 == Int)
+            {
+                // Handle string.
+                std::cout << "L: " << token.lexeme << " \n";
+            }
+            else if (token.type == literal && token.type2 == Bool)
             {
                 // Handle string.
                 std::cout << "L: " << token.lexeme << " \n";
@@ -308,9 +282,16 @@ public:
             {
                 std::cout << "int: " << token.lexeme << "\n";
             }*/
+            else if (token.type == error)
+            {
+                std::cout << "Error: " << token.lexeme << "\n";
+            }
+            else if (token.type == op){
+                std::cout << "op: " << "type: "<< token.type2 << " " << token.lexeme << "\n";
+            }
             else
             {
-                std::cout << "Elze" << token.lexeme << " \n";
+                std::cout << "token: " << "type: "<< token.type2 << " " << token.lexeme << "\n";
             }
         }
         std::cout << std::endl;
@@ -322,7 +303,7 @@ private:
 
 int main()
 {
-    std::string input = "out: \"Hello";
+    std::string input = "out: \"Hello\"\nFunc: main(){}\n";
     Parser parser(input);
     parser.parse();
     return 0;
